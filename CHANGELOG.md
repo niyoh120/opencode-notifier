@@ -5,8 +5,8 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Changed
-- minDuration: do not notify if elapsed time from prompt is under a threshold (default 0)
 - optional custom command configurable (invoked for all events)
+- minDuration: do not execute the custom command if elapsed time from prompt is under a threshold (default 0)
 - Session completion notifications now only fire for main (primary) sessions
 - Subagent (child) sessions completions have a dedicated subagent_complete event
 
