@@ -108,7 +108,7 @@ To customize the plugin, create `~/.config/opencode/opencode-notifier.json`:
   "messages": {
     "permission": "Session needs permission",
     "complete": "Session has finished",
-    "subagent_complete": "Subagent has finished",
+    "subagent_complete": "Subagent task completed",
     "error": "Session encountered an error",
     "question": "Session has a question"
   },

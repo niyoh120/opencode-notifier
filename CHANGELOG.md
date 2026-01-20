@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.1.15] - 2026-01-20
+
+### Fixed
+- README now shows correct default message for `subagent_complete`
+
+## [0.1.14] - 2026-01-20
 
 ### Added
 - Custom command execution for events with `{event}` and `{message}` token substitution
@@ -12,6 +17,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - `complete` event now only fires for main (primary) sessions
 - Elapsed time for `minDuration` now measures time since last user prompt
+
+### Fixed
+- Config parsing for `subagent_complete` now supports top-level format
 
 ## [0.1.13] - 2026-01-14
 
