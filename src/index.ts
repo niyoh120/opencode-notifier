@@ -49,7 +49,7 @@ async function handleEvent(
     elapsedSeconds < minDuration
 
   if (!shouldSkipCommand) {
-    runCommand(config, eventType, message, sessionTitle)
+    runCommand(config, eventType, message, sessionTitle, projectName)
   }
 
   await Promise.allSettled(promises)
@@ -176,7 +176,13 @@ export const NotifierPlugin: Plugin = async ({ client, directory }) => {
       }
 
       if (event.type === "session.error") {
-        await handleEventWithElapsedTime(client, config, "error", projectName, event)
+        const sessionID = getSessionIDFromEvent(event)
+        let sessionTitle: string | null = null
+        if (sessionID && config.showSessionTitle) {
+          const info = await getSessionInfo(client, sessionID)
+          sessionTitle = info.title
+        }
+        await handleEventWithElapsedTime(client, config, "error", projectName, event, sessionTitle)
       }
     },
     "permission.ask": async () => {

@@ -64,7 +64,7 @@ const DEFAULT_CONFIG: NotifierConfig = {
   notification: true,
   timeout: 5,
   showProjectName: true,
-  showSessionTitle: true,
+  showSessionTitle: false,
   showIcon: true,
   notificationSystem: "osascript",
   command: {

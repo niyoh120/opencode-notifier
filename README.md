@@ -52,7 +52,7 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
   "notification": true,
   "timeout": 5,
   "showProjectName": true,
-  "showSessionTitle": true,
+  "showSessionTitle": false,
   "showIcon": true,
   "notificationSystem": "osascript",
   "command": {
@@ -95,7 +95,7 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
   "notification": true,
   "timeout": 5,
   "showProjectName": true,
-  "showSessionTitle": true,
+  "showSessionTitle": false,
   "showIcon": true,
   "notificationSystem": "osascript"
 }
