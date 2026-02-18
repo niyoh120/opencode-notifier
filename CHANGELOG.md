@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.20] - 2026-02-18
+
+### Added
+- Per-event sound volume configuration (#30) - @minpeter
+- New `volumes` config option to set individual volume levels (0-1) for each event type
+- Supported on macOS and Linux (Windows plays at full volume)
+- Volume values are automatically clamped to valid range (0-1)
+- Default volume is 100% (1.0) for all events when not specified
+
 ## [0.1.19] - 2026-02-12
 
 ### Added
