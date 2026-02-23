@@ -57,7 +57,6 @@ function sendLinuxNotificationDirect(
     }
 
     args.push("--expire-time", String(timeout * 1000))
-    args.push("--app-name", "OpenCode")
 
     if (grouping && lastLinuxNotificationId !== null) {
       args.push("--replace-id", String(lastLinuxNotificationId))

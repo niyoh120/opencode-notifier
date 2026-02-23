@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.28] - 2026-02-23
+
+### Fixed
+- Fix Linux notification grouping not showing notifications on GNOME (#33)
+- Removed `--app-name` flag from direct `notify-send` calls that caused GNOME to suppress notifications
+
 ## [0.1.27] - 2026-02-23
 
 ### Added
