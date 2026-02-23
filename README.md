@@ -55,6 +55,9 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
   "showSessionTitle": false,
   "showIcon": true,
   "notificationSystem": "osascript",
+  "linux": {
+    "grouping": false
+  },
   "command": {
     "enabled": false,
     "path": "/path/to/command",
@@ -115,6 +118,7 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
 - `showSessionTitle` - Include the session title in notification messages via `{sessionTitle}` placeholder (default: true)
 - `showIcon` - Show OpenCode icon, Windows/Linux only (default: true)
 - `notificationSystem` - macOS only: `"osascript"` or `"node-notifier"` (default: "osascript")
+- `linux.grouping` - Linux only: replace notifications in-place instead of stacking (default: false). Requires `notify-send` 0.8+
 
 ### Events
 
@@ -262,6 +266,24 @@ Run your own script when something happens. Use `{event}`, `{message}`, and `{se
 ```
 
 **NOTE:** If you go with node-notifier and start missing notifications, just switch back or remove the option from the config. Users have reported issues with using node-notifier for receiving only sounds and no notification popups.
+
+## Linux: Notification Grouping
+
+By default, each notification appears as a separate entry. During active sessions this can create noise when multiple events fire quickly (e.g. permission + complete + question).
+
+Enable grouping to replace notifications in-place instead of stacking:
+
+```json
+{
+  "linux": {
+    "grouping": true
+  }
+}
+```
+
+With grouping enabled, each new notification replaces the previous one so you only see the latest event. This requires `notify-send` 0.8+ (standard on Ubuntu 22.04+, Debian 12+, Fedora 36+, Arch). On older systems it falls back to the default stacking behavior automatically.
+
+Works with all major notification daemons (GNOME, dunst, mako, swaync, etc.) on both X11 and Wayland.
 
 ## Updating
 

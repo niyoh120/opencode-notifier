@@ -17,6 +17,10 @@ export interface CommandConfig {
   minDuration?: number
 }
 
+export interface LinuxConfig {
+  grouping: boolean
+}
+
 export interface MessageContext {
   sessionTitle?: string | null
   projectName?: string | null
@@ -30,6 +34,7 @@ export interface NotifierConfig {
   showSessionTitle: boolean
   showIcon: boolean
   notificationSystem: "osascript" | "node-notifier"
+  linux: LinuxConfig
   command: CommandConfig
   events: {
     permission: EventConfig
@@ -78,6 +83,9 @@ const DEFAULT_CONFIG: NotifierConfig = {
   showSessionTitle: false,
   showIcon: true,
   notificationSystem: "osascript",
+  linux: {
+    grouping: false,
+  },
   command: {
     enabled: false,
     path: "",
@@ -203,6 +211,9 @@ export function loadConfig(): NotifierConfig {
       showSessionTitle: userConfig.showSessionTitle ?? DEFAULT_CONFIG.showSessionTitle,
       showIcon: userConfig.showIcon ?? DEFAULT_CONFIG.showIcon,
       notificationSystem: userConfig.notificationSystem === "node-notifier" ? "node-notifier" : "osascript",
+      linux: {
+        grouping: typeof userConfig.linux?.grouping === "boolean" ? userConfig.linux.grouping : DEFAULT_CONFIG.linux.grouping,
+      },
       command: {
         enabled: typeof userCommand.enabled === "boolean" ? userCommand.enabled : DEFAULT_CONFIG.command.enabled,
         path: typeof userCommand.path === "string" ? userCommand.path : DEFAULT_CONFIG.command.path,
