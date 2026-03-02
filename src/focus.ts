@@ -115,6 +115,16 @@ function isFocusedWindowOurs(windowPid: number): boolean {
   return isPidAncestorOfProcess(windowPid, getProcessTreeRoot())
 }
 
+const tmuxPane: string | null = process.env.TMUX_PANE ?? null
+
+function isTmuxPaneActive(): boolean {
+  if (!tmuxPane) return true
+  const result = execWithTimeout(`tmux display-message -t ${tmuxPane} -p '#{window_active} #{pane_active}'`)
+  if (!result) return false
+  const [windowActive, paneActive] = result.split(" ")
+  return windowActive === "1" && paneActive === "1"
+}
+
 function isLinuxX11Focused(): boolean {
   const pidStr = execWithTimeout("xdotool getactivewindow getwindowpid")
   if (!pidStr) return false
@@ -249,28 +259,29 @@ Write-Output $pid
 export function isTerminalFocused(): boolean {
   try {
     const platform = process.platform
+    let windowFocused = false
 
     if (platform === "darwin") {
       const terminal = detectTerminal()
       if (!terminal || terminal.macProcessNames.length === 0) return false
-      return isMacOSFocused(terminal)
-    }
-
-    if (platform === "linux") {
+      windowFocused = isMacOSFocused(terminal)
+    } else if (platform === "linux") {
       if (process.env.WAYLAND_DISPLAY) {
-        return isLinuxWaylandFocused()
+        windowFocused = isLinuxWaylandFocused()
+      } else if (process.env.DISPLAY) {
+        windowFocused = isLinuxX11Focused()
+      } else {
+        return false
       }
-      if (process.env.DISPLAY) {
-        return isLinuxX11Focused()
-      }
+    } else if (platform === "win32") {
+      windowFocused = isWindowsFocused()
+    } else {
       return false
     }
 
-    if (platform === "win32") {
-      return isWindowsFocused()
-    }
-
-    return false
+    if (!windowFocused) return false
+    if (process.env.TMUX) return isTmuxPaneActive()
+    return true
   } catch {
     return false
   }
