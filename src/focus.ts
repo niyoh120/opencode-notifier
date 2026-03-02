@@ -119,10 +119,10 @@ const tmuxPane: string | null = process.env.TMUX_PANE ?? null
 
 function isTmuxPaneActive(): boolean {
   if (!tmuxPane) return true
-  const result = execWithTimeout(`tmux display-message -t ${tmuxPane} -p '#{window_active} #{pane_active}'`)
+  const result = execWithTimeout(`tmux display-message -t ${tmuxPane} -p '#{session_attached} #{window_active} #{pane_active}'`)
   if (!result) return false
-  const [windowActive, paneActive] = result.split(" ")
-  return windowActive === "1" && paneActive === "1"
+  const [sessionAttached, windowActive, paneActive] = result.split(" ")
+  return sessionAttached === "1" && windowActive === "1" && paneActive === "1"
 }
 
 function isLinuxX11Focused(): boolean {
