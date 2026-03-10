@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.32] - 2026-03-10
+
+### Fixed
+- Plugin now correctly runs in CLI mode when `OPENCODE_CLIENT` is not set in the environment — previously `undefined !== "cli"` caused the plugin to silently return without firing any notifications
+
 ## [0.1.31] - 2026-03-10
 
 ### Fixed
