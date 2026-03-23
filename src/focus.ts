@@ -1,5 +1,23 @@
 import { execFileSync, execSync } from "child_process"
 
+const MAC_TERMINAL_APP_NAMES = new Set<string>([
+  "terminal",
+  "iterm2",
+  "ghostty",
+  "wezterm",
+  "alacritty",
+  "kitty",
+  "hyper",
+  "warp",
+  "tabby",
+  "cursor",
+  "visual studio code",
+  "code",
+  "code insiders",
+  "zed",
+  "rio",
+])
+
 function execWithTimeout(command: string, timeoutMs: number = 500): string | null {
   try {
     return execSync(command, { timeout: timeoutMs, encoding: "utf-8", stdio: ["ignore", "pipe", "ignore"] }).trim()
@@ -82,6 +100,59 @@ function getMacOSActiveWindowId(): string | null {
   )
 }
 
+function getMacOSFrontmostAppName(): string | null {
+  return execWithTimeout(
+    `osascript -e 'tell application "System Events" to return name of first application process whose frontmost is true'`
+  )
+}
+
+function normalizeMacAppName(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\.app$/i, "")
+    .replace(/\s+/g, " ")
+}
+
+function getExpectedMacTerminalAppNames(env: NodeJS.ProcessEnv): Set<string> {
+  const expected = new Set<string>()
+  const termProgram = typeof env.TERM_PROGRAM === "string" ? normalizeMacAppName(env.TERM_PROGRAM) : ""
+
+  if (termProgram === "apple_terminal") {
+    expected.add("terminal")
+  } else if (termProgram === "iterm" || termProgram === "iterm2") {
+    expected.add("iterm2")
+  } else if (termProgram === "vscode") {
+    expected.add("visual studio code")
+    expected.add("code")
+    expected.add("code insiders")
+  } else if (termProgram === "warpterminal") {
+    expected.add("warp")
+  } else if (termProgram.length > 0) {
+    expected.add(termProgram)
+  }
+
+  if (expected.size > 0) {
+    return expected
+  }
+
+  return new Set(MAC_TERMINAL_APP_NAMES)
+}
+
+export function isMacTerminalAppFocused(frontmostAppName: string | null, env: NodeJS.ProcessEnv = process.env): boolean {
+  if (!frontmostAppName) {
+    return false
+  }
+
+  const normalizedFrontmost = normalizeMacAppName(frontmostAppName)
+  if (!normalizedFrontmost) {
+    return false
+  }
+
+  const expectedApps = getExpectedMacTerminalAppNames(env)
+  return expectedApps.has(normalizedFrontmost)
+}
+
 function getActiveWindowId(): string | null {
   const platform = process.platform
   if (platform === "darwin") return getMacOSActiveWindowId()
@@ -108,6 +179,17 @@ function isTmuxPaneActive(): boolean {
 
 export function isTerminalFocused(): boolean {
   try {
+    if (process.platform === "darwin") {
+      const frontmostAppName = getMacOSFrontmostAppName()
+      if (!isMacTerminalAppFocused(frontmostAppName, process.env)) {
+        return false
+      }
+      if (process.env.TMUX) {
+        return isTmuxPaneActive()
+      }
+      return true
+    }
+
     if (!cachedWindowId) return false
     const currentId = getActiveWindowId()
     if (currentId !== cachedWindowId) return false
