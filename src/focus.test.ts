@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { isMacTerminalAppFocused, isTmuxPaneFocused } from "./focus"
+import { isMacTerminalAppFocused, isTmuxPaneFocused, parseWezTermFocusedPaneId } from "./focus"
 
 describe("isMacTerminalAppFocused", () => {
   test("matches Terminal when TERM_PROGRAM is Apple_Terminal", () => {
@@ -62,5 +62,28 @@ describe("isTmuxPaneFocused", () => {
     expect(isTmuxPaneFocused("%1", "1 1 0")).toBe(false)
     expect(isTmuxPaneFocused("%1", "1 0 1")).toBe(false)
     expect(isTmuxPaneFocused("%1", "0 1 1")).toBe(false)
+  })
+})
+
+describe("parseWezTermFocusedPaneId", () => {
+  test("returns pane id from valid list-clients JSON", () => {
+    const output = JSON.stringify([
+      { focused_pane_id: 18, workspace: "main" },
+      { focused_pane_id: 42, workspace: "dev" },
+    ])
+    expect(parseWezTermFocusedPaneId(output)).toBe("18")
+  })
+
+  test("returns null for non-array JSON", () => {
+    expect(parseWezTermFocusedPaneId('{"focused_pane_id": 18}')).toBe(null)
+  })
+
+  test("returns null for malformed JSON", () => {
+    expect(parseWezTermFocusedPaneId("not-json")).toBe(null)
+  })
+
+  test("returns null when no focused_pane_id exists", () => {
+    const output = JSON.stringify([{ workspace: "main" }, { focused_pane_id: "18" }])
+    expect(parseWezTermFocusedPaneId(output)).toBe(null)
   })
 })
