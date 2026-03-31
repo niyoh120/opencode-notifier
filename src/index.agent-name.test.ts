@@ -20,4 +20,11 @@ describe("extractAgentNameFromSessionTitle", () => {
     expect(extractAgentNameFromSessionTitle(null)).toBe("")
     expect(extractAgentNameFromSessionTitle(undefined)).toBe("")
   })
+
+  test("returns empty string for non-string input", () => {
+    expect(extractAgentNameFromSessionTitle(123)).toBe("")
+    expect(extractAgentNameFromSessionTitle({ title: "x" })).toBe("")
+    expect(extractAgentNameFromSessionTitle(["(@builder subagent)"])).toBe("")
+    expect(extractAgentNameFromSessionTitle(true)).toBe("")
+  })
 })

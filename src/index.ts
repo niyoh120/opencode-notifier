@@ -99,8 +99,8 @@ function formatTimestamp(): string {
   return `${h}:${m}:${s}`
 }
 
-export function extractAgentNameFromSessionTitle(sessionTitle: string | null | undefined): string {
-  if (!sessionTitle) {
+export function extractAgentNameFromSessionTitle(sessionTitle: unknown): string {
+  if (typeof sessionTitle !== "string" || sessionTitle.length === 0) {
     return ""
   }
 
@@ -283,9 +283,10 @@ async function getSessionInfo(
 ): Promise<SessionInfo> {
   try {
     const response = await client.session.get({ path: { id: sessionID } })
+    const title = typeof response.data?.title === "string" ? response.data.title : null
     return {
       isChild: !!response.data?.parentID,
-      title: response.data?.title ?? null,
+      title,
     }
   } catch {
     return { isChild: false, title: null }
