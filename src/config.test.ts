@@ -49,6 +49,7 @@ describe("Config", () => {
     
     expect(config.sound).toBe(true)
     expect(config.notification).toBe(true)
+    expect(config.bell).toBe(false)
     expect(config.timeout).toBe(5)
     expect(config.showProjectName).toBe(true)
     expect(config.showIcon).toBe(true)
@@ -59,6 +60,7 @@ describe("Config", () => {
     const testConfig = {
       sound: false,
       notification: true,
+      bell: true,
       timeout: 10,
     }
     writeFileSync(testConfigPath, JSON.stringify(testConfig))
@@ -68,6 +70,7 @@ describe("Config", () => {
     
     expect(config.sound).toBe(false)
     expect(config.notification).toBe(true)
+    expect(config.bell).toBe(true)
     expect(config.timeout).toBe(10)
   })
 
@@ -100,18 +103,46 @@ describe("Config", () => {
       sound: true,
       events: {
         complete: { sound: false, notification: true },
-        error: { sound: true, notification: false },
+        error: { sound: true, notification: false, bell: true },
       },
     }
     writeFileSync(testConfigPath, JSON.stringify(testConfig))
     
-    const { loadConfig, isEventSoundEnabled, isEventNotificationEnabled } = await import("./config")
+    const { loadConfig, isEventSoundEnabled, isEventNotificationEnabled, isEventBellEnabled } = await import("./config")
     const config = loadConfig()
     
     expect(isEventSoundEnabled(config, "complete")).toBe(false)
     expect(isEventNotificationEnabled(config, "complete")).toBe(true)
     expect(isEventSoundEnabled(config, "error")).toBe(true)
     expect(isEventNotificationEnabled(config, "error")).toBe(false)
+    expect(isEventBellEnabled(config, "error")).toBe(true)
+  })
+
+  test("loadConfig keeps bell disabled for boolean event shorthand", async () => {
+    const testConfig = {
+      events: {
+        complete: true,
+      },
+    }
+    writeFileSync(testConfigPath, JSON.stringify(testConfig))
+
+    const { loadConfig, isEventBellEnabled } = await import("./config")
+    const config = loadConfig()
+
+    expect(isEventBellEnabled(config, "complete")).toBe(false)
+  })
+
+  test("loadConfig inherits bell from global config", async () => {
+    const testConfig = {
+      bell: true,
+    }
+    writeFileSync(testConfigPath, JSON.stringify(testConfig))
+
+    const { loadConfig, isEventBellEnabled } = await import("./config")
+    const config = loadConfig()
+
+    expect(isEventBellEnabled(config, "permission")).toBe(true)
+    expect(isEventBellEnabled(config, "complete")).toBe(true)
   })
 
   test("loadConfig defaults user_cancelled to silent", async () => {

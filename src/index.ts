@@ -6,6 +6,7 @@ import {
   isEventSoundEnabled,
   isEventNotificationEnabled,
   isEventCommandEnabled,
+  isEventBellEnabled,
   getMessage,
   getSoundPath,
   getSoundVolume,
@@ -16,6 +17,7 @@ import {
 import type { EventType, NotifierConfig } from "./config"
 import { sendNotification } from "./notify"
 import { playSound } from "./sound"
+import { ringBell } from "./bell"
 import { runCommand } from "./command"
 import { isTerminalFocused } from "./focus"
 import { shouldSuppressPermissionAlert, prunePermissionAlertState } from "./permission-dedupe"
@@ -190,6 +192,10 @@ async function handleEvent(
     const customSoundPath = getSoundPath(config, eventType)
     const soundVolume = getSoundVolume(config, eventType)
     promises.push(playSound(eventType, customSoundPath, soundVolume))
+  }
+
+  if (isEventBellEnabled(config, eventType)) {
+    promises.push(ringBell())
   }
 
   const minDuration = config.command?.minDuration

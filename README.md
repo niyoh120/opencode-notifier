@@ -50,6 +50,7 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
 {
   "sound": true,
   "notification": true,
+  "bell": false,
   "timeout": 5,
   "showProjectName": true,
   "showSessionTitle": false,
@@ -67,16 +68,16 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
     "minDuration": 0
   },
   "events": {
-    "permission": { "sound": true, "notification": true, "command": true },
-    "complete": { "sound": true, "notification": true, "command": true },
-    "subagent_complete": { "sound": false, "notification": false, "command": true },
-    "error": { "sound": true, "notification": true, "command": true },
-    "question": { "sound": true, "notification": true, "command": true },
-    "user_cancelled": { "sound": false, "notification": false, "command": true },
-    "plan_exit": { "sound": true, "notification": true, "command": true },
-    "session_started": { "sound": true, "notification": false, "command": true },
-    "user_message": { "sound": true, "notification": false, "command": true },
-    "client_connected": { "sound": true, "notification": false, "command": true }
+    "permission": { "sound": true, "notification": true, "command": true, "bell": false },
+    "complete": { "sound": true, "notification": true, "command": true, "bell": false },
+    "subagent_complete": { "sound": false, "notification": false, "command": true, "bell": false },
+    "error": { "sound": true, "notification": true, "command": true, "bell": false },
+    "question": { "sound": true, "notification": true, "command": true, "bell": false },
+    "user_cancelled": { "sound": false, "notification": false, "command": true, "bell": false },
+    "plan_exit": { "sound": true, "notification": true, "command": true, "bell": false },
+    "session_started": { "sound": true, "notification": false, "command": true, "bell": false },
+    "user_message": { "sound": true, "notification": false, "command": true, "bell": false },
+    "client_connected": { "sound": true, "notification": false, "command": true, "bell": false }
   },
   "messages": {
     "permission": "Session needs permission: {sessionTitle}",
@@ -125,6 +126,7 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
 {
   "sound": true,
   "notification": true,
+  "bell": false,
   "timeout": 5,
   "showProjectName": true,
   "showSessionTitle": false,
@@ -137,6 +139,7 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
 
 - `sound` - Turn sounds on/off (default: true)
 - `notification` - Turn notifications on/off (default: true)
+- `bell` - Emit terminal BEL (`\x07`) on events (default: false). Behavior depends on your terminal/WM settings
 - `timeout` - How long notifications show in seconds, Linux only (default: 5)
 - `showProjectName` - Show folder name in notification title (default: true)
 - `showSessionTitle` - Include the session title in notification messages via `{sessionTitle}` placeholder (default: false)
@@ -153,16 +156,16 @@ Control each event separately:
 ```json
 {
   "events": {
-    "permission": { "sound": true, "notification": true, "command": true },
-    "complete": { "sound": true, "notification": true, "command": true },
-    "subagent_complete": { "sound": false, "notification": false, "command": true },
-    "error": { "sound": true, "notification": true, "command": true },
-    "question": { "sound": true, "notification": true, "command": true },
-    "user_cancelled": { "sound": false, "notification": false, "command": true },
-    "plan_exit": { "sound": true, "notification": true, "command": true },
-    "session_started": { "sound": true, "notification": false, "command": true },
-    "user_message": { "sound": true, "notification": false, "command": true },
-    "client_connected": { "sound": true, "notification": false, "command": true }
+    "permission": { "sound": true, "notification": true, "command": true, "bell": false },
+    "complete": { "sound": true, "notification": true, "command": true, "bell": false },
+    "subagent_complete": { "sound": false, "notification": false, "command": true, "bell": false },
+    "error": { "sound": true, "notification": true, "command": true, "bell": false },
+    "question": { "sound": true, "notification": true, "command": true, "bell": false },
+    "user_cancelled": { "sound": false, "notification": false, "command": true, "bell": false },
+    "plan_exit": { "sound": true, "notification": true, "command": true, "bell": false },
+    "session_started": { "sound": true, "notification": false, "command": true, "bell": false },
+    "user_message": { "sound": true, "notification": false, "command": true, "bell": false },
+    "client_connected": { "sound": true, "notification": false, "command": true, "bell": false }
   }
 }
 ```
@@ -172,6 +175,8 @@ Control each event separately:
 `session_started` fires when a new top-level session is created. `user_message` fires when a user message is submitted in a top-level session. `client_connected` fires shortly after the plugin initializes and is best-effort (there is no dedicated SDK connection event from plugin context).
 
 The `command` property controls whether the custom command (see [Custom commands](#custom-commands)) runs for that event. Defaults to `true` for all events. Set it to `false` to suppress the command for specific events without disabling it globally.
+
+`bell` is terminal-driven and may be audible, visual, both, or ignored depending on your terminal setup. Quick check: `printf '\a'`.
 
 Or use true/false for both:
 

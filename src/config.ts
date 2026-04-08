@@ -20,6 +20,7 @@ export interface EventConfig {
   sound: boolean
   notification: boolean
   command: boolean
+  bell: boolean
 }
 
 export interface CommandConfig {
@@ -44,6 +45,7 @@ export interface MessageContext {
 export interface NotifierConfig {
   sound: boolean
   notification: boolean
+  bell: boolean
   timeout: number
   showProjectName: boolean
   showSessionTitle: boolean
@@ -111,11 +113,13 @@ const DEFAULT_EVENT_CONFIG: EventConfig = {
   sound: true,
   notification: true,
   command: true,
+  bell: false,
 }
 
 const DEFAULT_CONFIG: NotifierConfig = {
   sound: true,
   notification: true,
+  bell: false,
   timeout: 5,
   showProjectName: true,
   showSessionTitle: false,
@@ -198,7 +202,7 @@ export function getStatePath(): string {
 }
 
 function parseEventConfig(
-  userEvent: boolean | { sound?: boolean; notification?: boolean; command?: boolean } | undefined,
+  userEvent: boolean | { sound?: boolean; notification?: boolean; command?: boolean; bell?: boolean } | undefined,
   defaultConfig: EventConfig
 ): EventConfig {
   if (userEvent === undefined) {
@@ -210,6 +214,7 @@ function parseEventConfig(
       sound: userEvent,
       notification: userEvent,
       command: userEvent,
+      bell: defaultConfig.bell,
     }
   }
 
@@ -217,6 +222,7 @@ function parseEventConfig(
     sound: userEvent.sound ?? defaultConfig.sound,
     notification: userEvent.notification ?? defaultConfig.notification,
     command: userEvent.command ?? defaultConfig.command,
+    bell: userEvent.bell ?? defaultConfig.bell,
   }
 }
 
@@ -249,11 +255,13 @@ export function loadConfig(): NotifierConfig {
 
     const globalSound = userConfig.sound ?? DEFAULT_CONFIG.sound
     const globalNotification = userConfig.notification ?? DEFAULT_CONFIG.notification
+    const globalBell = userConfig.bell ?? DEFAULT_CONFIG.bell
 
     const defaultWithGlobal: EventConfig = {
       sound: globalSound,
       notification: globalNotification,
       command: true,
+      bell: globalBell,
     }
 
     const userCommand = userConfig.command ?? {}
@@ -271,6 +279,7 @@ export function loadConfig(): NotifierConfig {
     return {
       sound: globalSound,
       notification: globalNotification,
+      bell: globalBell,
       timeout:
         typeof userConfig.timeout === "number" && userConfig.timeout > 0
           ? userConfig.timeout
@@ -298,11 +307,11 @@ export function loadConfig(): NotifierConfig {
       events: {
         permission: parseEventConfig(userConfig.events?.permission ?? userConfig.permission, defaultWithGlobal),
         complete: parseEventConfig(userConfig.events?.complete ?? userConfig.complete, defaultWithGlobal),
-        subagent_complete: parseEventConfig(userConfig.events?.subagent_complete ?? userConfig.subagent_complete, { sound: false, notification: false, command: true }),
+        subagent_complete: parseEventConfig(userConfig.events?.subagent_complete ?? userConfig.subagent_complete, { sound: false, notification: false, command: true, bell: false }),
         error: parseEventConfig(userConfig.events?.error ?? userConfig.error, defaultWithGlobal),
         question: parseEventConfig(userConfig.events?.question ?? userConfig.question, defaultWithGlobal),
         interrupted: parseEventConfig(userConfig.events?.interrupted ?? userConfig.interrupted, defaultWithGlobal),
-        user_cancelled: parseEventConfig(userConfig.events?.user_cancelled ?? userConfig.user_cancelled, { sound: false, notification: false, command: true }),
+        user_cancelled: parseEventConfig(userConfig.events?.user_cancelled ?? userConfig.user_cancelled, { sound: false, notification: false, command: true, bell: false }),
         plan_exit: parseEventConfig(userConfig.events?.plan_exit ?? userConfig.plan_exit, defaultWithGlobal),
         session_started: parseEventConfig(userConfig.events?.session_started ?? userConfig.session_started, { ...defaultWithGlobal, notification: false }),
         user_message: parseEventConfig(userConfig.events?.user_message ?? userConfig.user_message, { ...defaultWithGlobal, notification: false }),
@@ -366,6 +375,10 @@ export function isEventNotificationEnabled(config: NotifierConfig, event: EventT
 
 export function isEventCommandEnabled(config: NotifierConfig, event: EventType): boolean {
   return config.events[event].command
+}
+
+export function isEventBellEnabled(config: NotifierConfig, event: EventType): boolean {
+  return config.events[event].bell
 }
 
 export function getMessage(config: NotifierConfig, event: EventType): string {
