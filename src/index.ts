@@ -28,6 +28,32 @@ const sessionErrorSuppressionAt = new Map<string, number>()
 const sessionLastBusyAt = new Map<string, number>()
 const subagentSessionIds = new Set<string>()
 
+type UnknownRecord = Record<string, unknown>
+
+function asRecord(value: unknown): UnknownRecord | null {
+  return value !== null && typeof value === "object" ? (value as UnknownRecord) : null
+}
+
+function getNestedRecord(root: unknown, ...path: string[]): UnknownRecord | null {
+  let current: unknown = root
+  for (const key of path) {
+    const record = asRecord(current)
+    if (!record || !(key in record)) {
+      return null
+    }
+    current = record[key]
+  }
+  return asRecord(current)
+}
+
+function getStringField(record: UnknownRecord | null, key: string): string | null {
+  if (!record) {
+    return null
+  }
+  const value = record[key]
+  return typeof value === "string" && value.length > 0 ? value : null
+}
+
 let globalTurnCount: number | null = null
 
 function loadTurnCount(): number {
@@ -184,11 +210,36 @@ async function handleEvent(
 }
 
 function getSessionIDFromEvent(event: unknown): string | null {
-  const sessionID = (event as any)?.properties?.sessionID
-  if (typeof sessionID === "string" && sessionID.length > 0) {
-    return sessionID
+  const properties = getNestedRecord(event, "properties")
+  return getStringField(properties, "sessionID")
+}
+
+interface SessionLifecycleInfo {
+  id: string | null
+  title: string | null
+  parentID: string | null
+}
+
+function getSessionLifecycleInfo(event: unknown): SessionLifecycleInfo {
+  const info = getNestedRecord(event, "properties", "info")
+  return {
+    id: getStringField(info, "id"),
+    title: getStringField(info, "title"),
+    parentID: getStringField(info, "parentID"),
   }
-  return null
+}
+
+interface MessageUpdatedInfo {
+  role: string | null
+  sessionID: string | null
+}
+
+function getMessageUpdatedInfo(event: unknown): MessageUpdatedInfo {
+  const info = getNestedRecord(event, "properties", "info")
+  return {
+    role: getStringField(info, "role"),
+    sessionID: getStringField(info, "sessionID"),
+  }
 }
 
 function clearPendingIdleTimer(sessionID: string): void {
@@ -421,25 +472,25 @@ export const NotifierPlugin: Plugin = async ({ client, directory }) => {
 
       // Track subagent sessions from session lifecycle events
       if (event.type === "session.created") {
-        const info = event.properties?.info
-        if (info?.parentID) {
+        const info = getSessionLifecycleInfo(event)
+        if (info.parentID && info.id) {
           subagentSessionIds.add(info.id)
         } else {
           // Non-subagent session started
-          await handleEvent(config, "session_started", projectName, null, info?.title ?? null, info?.id ?? null, null)
+          await handleEvent(config, "session_started", projectName, null, info.title, info.id, null)
         }
       }
 
       if (event.type === "session.updated") {
-        const info = event.properties?.info
-        if (info?.parentID && info?.id) {
+        const info = getSessionLifecycleInfo(event)
+        if (info.parentID && info.id) {
           subagentSessionIds.add(info.id)
         }
       }
 
       if (event.type === "session.deleted") {
-        const info = event.properties?.info
-        if (info?.id) {
+        const info = getSessionLifecycleInfo(event)
+        if (info.id) {
           subagentSessionIds.delete(info.id)
         }
       }
@@ -477,9 +528,9 @@ export const NotifierPlugin: Plugin = async ({ client, directory }) => {
       }
 
       if (event.type === "message.updated") {
-        const role = (event as any).properties?.info?.role
-        if (role === "user") {
-          const sessionID = (event as any).properties?.info?.sessionID ?? null
+        const info = getMessageUpdatedInfo(event)
+        if (info.role === "user") {
+          const sessionID = info.sessionID
           // Only fire for non-subagent sessions
           if (!sessionID || !subagentSessionIds.has(sessionID)) {
             await handleEvent(config, "user_message", projectName, null, null, sessionID, null)

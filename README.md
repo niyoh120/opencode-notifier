@@ -73,7 +73,10 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
     "error": { "sound": true, "notification": true, "command": true },
     "question": { "sound": true, "notification": true, "command": true },
     "user_cancelled": { "sound": false, "notification": false, "command": true },
-    "plan_exit": { "sound": true, "notification": true, "command": true }
+    "plan_exit": { "sound": true, "notification": true, "command": true },
+    "session_started": { "sound": true, "notification": false, "command": true },
+    "user_message": { "sound": true, "notification": false, "command": true },
+    "client_connected": { "sound": true, "notification": false, "command": true }
   },
   "messages": {
     "permission": "Session needs permission: {sessionTitle}",
@@ -82,7 +85,10 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
     "error": "Session encountered an error: {sessionTitle}",
     "question": "Session has a question: {sessionTitle}",
     "user_cancelled": "Session was cancelled by user: {sessionTitle}",
-    "plan_exit": "Plan ready for review: {sessionTitle}"
+    "plan_exit": "Plan ready for review: {sessionTitle}",
+    "session_started": "Session started: {sessionTitle}",
+    "user_message": "User sent a message: {sessionTitle}",
+    "client_connected": "OpenCode connected"
   },
   "sounds": {
     "permission": null,
@@ -91,7 +97,10 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
     "error": null,
     "question": null,
     "user_cancelled": null,
-    "plan_exit": null
+    "plan_exit": null,
+    "session_started": null,
+    "user_message": null,
+    "client_connected": null
   },
   "volumes": {
     "permission": 1,
@@ -100,7 +109,10 @@ Create `~/.config/opencode/opencode-notifier.json` with the defaults:
     "error": 1,
     "question": 1,
     "user_cancelled": 1,
-    "plan_exit": 1
+    "plan_exit": 1,
+    "session_started": 1,
+    "user_message": 1,
+    "client_connected": 1
   }
 }
 ```
@@ -147,12 +159,17 @@ Control each event separately:
     "error": { "sound": true, "notification": true, "command": true },
     "question": { "sound": true, "notification": true, "command": true },
     "user_cancelled": { "sound": false, "notification": false, "command": true },
-    "plan_exit": { "sound": true, "notification": true, "command": true }
+    "plan_exit": { "sound": true, "notification": true, "command": true },
+    "session_started": { "sound": true, "notification": false, "command": true },
+    "user_message": { "sound": true, "notification": false, "command": true },
+    "client_connected": { "sound": true, "notification": false, "command": true }
   }
 }
 ```
 
 `user_cancelled` fires when you press ESC to abort a session. It's silent by default so intentional cancellations don't trigger error alerts. Set `sound` or `notification` to `true` if you want confirmation when cancelling.
+
+`session_started` fires when a new top-level session is created. `user_message` fires when a user message is submitted in a top-level session. `client_connected` fires shortly after the plugin initializes and is best-effort (there is no dedicated SDK connection event from plugin context).
 
 The `command` property controls whether the custom command (see [Custom commands](#custom-commands)) runs for that event. Defaults to `true` for all events. Set it to `false` to suppress the command for specific events without disabling it globally.
 
@@ -179,7 +196,10 @@ Customize the notification text:
     "error": "Session encountered an error: {sessionTitle}",
     "question": "Session has a question: {sessionTitle}",
     "user_cancelled": "Session was cancelled by user: {sessionTitle}",
-    "plan_exit": "Plan ready for review: {sessionTitle}"
+    "plan_exit": "Plan ready for review: {sessionTitle}",
+    "session_started": "Session started: {sessionTitle}",
+    "user_message": "User sent a message: {sessionTitle}",
+    "client_connected": "OpenCode connected"
   }
 }
 ```
@@ -211,7 +231,10 @@ Use your own sound files:
     "error": "/path/to/error.wav",
     "question": "/path/to/question.wav",
     "user_cancelled": "/path/to/cancelled.wav",
-    "plan_exit": "/path/to/plan-ready.wav"
+    "plan_exit": "/path/to/plan-ready.wav",
+    "session_started": "/path/to/session-started.wav",
+    "user_message": "/path/to/user-message.wav",
+    "client_connected": "/path/to/client-connected.wav"
   }
 }
 ```
@@ -234,7 +257,10 @@ Set per-event volume from `0` to `1`:
     "error": 1,
     "question": 0.7,
     "user_cancelled": 0.5,
-    "plan_exit": 0.6
+    "plan_exit": 0.6,
+    "session_started": 0.35,
+    "user_message": 0.2,
+    "client_connected": 0.45
   }
 }
 ```

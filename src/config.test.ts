@@ -153,6 +153,47 @@ describe("Config", () => {
     expect(getSoundVolume(config, "plan_exit")).toBe(0.35)
   })
 
+  test("loadConfig defaults new high-frequency events to sound only", async () => {
+    const { loadConfig, isEventSoundEnabled, isEventNotificationEnabled } = await import("./config")
+    const config = loadConfig()
+
+    expect(isEventSoundEnabled(config, "session_started")).toBe(true)
+    expect(isEventNotificationEnabled(config, "session_started")).toBe(false)
+    expect(isEventSoundEnabled(config, "user_message")).toBe(true)
+    expect(isEventNotificationEnabled(config, "user_message")).toBe(false)
+    expect(isEventSoundEnabled(config, "client_connected")).toBe(true)
+    expect(isEventNotificationEnabled(config, "client_connected")).toBe(false)
+  })
+
+  test("loadConfig parses new events config from file", async () => {
+    const testConfig = {
+      events: {
+        session_started: { sound: false, notification: true, command: false },
+        user_message: { sound: false, notification: false, command: false },
+        client_connected: { sound: true, notification: true, command: true },
+      },
+      messages: {
+        session_started: "Started",
+        user_message: "User spoke",
+        client_connected: "Connected",
+      },
+    }
+    writeFileSync(testConfigPath, JSON.stringify(testConfig))
+
+    const { loadConfig, isEventSoundEnabled, isEventNotificationEnabled, getMessage } = await import("./config")
+    const config = loadConfig()
+
+    expect(isEventSoundEnabled(config, "session_started")).toBe(false)
+    expect(isEventNotificationEnabled(config, "session_started")).toBe(true)
+    expect(isEventSoundEnabled(config, "user_message")).toBe(false)
+    expect(isEventNotificationEnabled(config, "user_message")).toBe(false)
+    expect(isEventSoundEnabled(config, "client_connected")).toBe(true)
+    expect(isEventNotificationEnabled(config, "client_connected")).toBe(true)
+    expect(getMessage(config, "session_started")).toBe("Started")
+    expect(getMessage(config, "user_message")).toBe("User spoke")
+    expect(getMessage(config, "client_connected")).toBe("Connected")
+  })
+
   test("loadConfig parses user_cancelled event config from file", async () => {
     const testConfig = {
       events: {
