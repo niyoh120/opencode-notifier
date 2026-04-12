@@ -43,6 +43,16 @@ describe("isMacTerminalAppFocused", () => {
     const env = { TERM_PROGRAM: "tmux", TMUX: "/tmp/tmux-1000/default,1234,0" }
     expect(isMacTerminalAppFocused("Safari", env)).toBe(false)
   })
+
+  test("wezterm TERM_PROGRAM matches WezTerm-GUI frontmost app", () => {
+    const env = { TERM_PROGRAM: "wezterm" }
+    expect(isMacTerminalAppFocused("WezTerm-GUI", env)).toBe(true)
+  })
+
+  test("wezterm TERM_PROGRAM still rejects non-terminal frontmost app", () => {
+    const env = { TERM_PROGRAM: "wezterm" }
+    expect(isMacTerminalAppFocused("Safari", env)).toBe(false)
+  })
 })
 
 describe("isTmuxPaneFocused", () => {
