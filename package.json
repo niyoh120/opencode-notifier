@@ -34,6 +34,7 @@
     "alerts"
   ],
   "dependencies": {
+    "is-wsl": "^3.1.0",
     "node-notifier": "^10.0.1"
   },
   "devDependencies": {
