@@ -436,14 +436,21 @@ async function handleEventWithElapsedTime(
   preloadedSessionTitle?: string | null
 ): Promise<void> {
   const sessionID = getSessionIDFromEvent(event)
-  const minDuration = config.command?.minDuration
-  const shouldLookupElapsed =
+  const commandMinDuration = config.command?.minDuration
+  const shouldLookupElapsedForCommand =
     !!config.command?.enabled &&
     typeof config.command?.path === "string" &&
     config.command.path.length > 0 &&
-    typeof minDuration === "number" &&
-    Number.isFinite(minDuration) &&
-    minDuration > 0
+    typeof commandMinDuration === "number" &&
+    Number.isFinite(commandMinDuration) &&
+    commandMinDuration > 0
+
+  const shouldLookupElapsedForNotification =
+    typeof config.minDuration === "number" &&
+    Number.isFinite(config.minDuration) &&
+    config.minDuration > 0
+
+  const shouldLookupElapsed = shouldLookupElapsedForCommand || shouldLookupElapsedForNotification
 
   let elapsedSeconds: number | null = null
   if (shouldLookupElapsed) {
