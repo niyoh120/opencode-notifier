@@ -455,13 +455,20 @@ If Opencode does not update the plugin or there is an issue with the cache versi
 
 ```bash
 # Linux/macOS
+rm -rf ~/.cache/opencode/packages/@mohak34/opencode-notifier@beta
 rm -rf ~/.cache/opencode/node_modules/@mohak34/opencode-notifier
 
 # Windows
+Remove-Item -Recurse -Force "$env:USERPROFILE\.cache\opencode\packages\@mohak34\opencode-notifier@beta"
 Remove-Item -Recurse -Force "$env:USERPROFILE\.cache\opencode\node_modules\@mohak34\opencode-notifier"
 ```
 
 Then restart OpenCode.
+
+Verify installation:
+```bash
+cat ~/.cache/opencode/packages/@mohak34/opencode-notifier@beta/node_modules/@mohak34/opencode-notifier/package.json | grep version
+```
 
 ## Troubleshooting
 
@@ -561,9 +568,18 @@ This is a known Bun issue on Windows. Disable native notifications and use Power
 
 **Plugin not loading?**
 
-- Check your opencode.json syntax
+- Check your `opencode.json` or `config.json` syntax
 - Clear the cache (see Updating section)
 - Restart OpenCode
+
+**Plugin installed but no notifications/sounds?**
+
+- Check `suppressWhenFocused`: when `true` (default), notifications are skipped while OpenCode terminal is focused. Set to `false` to always notify.
+- Check `enableOnDesktop`: defaults to `false`, so the plugin won't run on Desktop/Web clients. Set to `true` if you need it there.
+- Verify the package is actually cached:
+  ```bash
+  cat ~/.cache/opencode/packages/@mohak34/opencode-notifier@beta/node_modules/@mohak34/opencode-notifier/package.json | grep version
+  ```
 
 ## Changelog
 
