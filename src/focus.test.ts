@@ -1,5 +1,5 @@
 import { describe, test, expect } from "bun:test"
-import { isLinuxTerminalFocused, isMacTerminalAppFocused, isTmuxPaneFocused, parseWezTermFocusedPaneId } from "./focus"
+import { isLinuxTerminalFocused, isMacTerminalAppFocused, isTmuxPaneFocused, parseWezTermFocusedPaneId, isKDEJumpBackSupported, captureStartupWindowId, focusTerminal, getCachedWindowTitle } from "./focus"
 
 describe("isMacTerminalAppFocused", () => {
   test("matches Terminal when TERM_PROGRAM is Apple_Terminal", () => {
@@ -141,5 +141,59 @@ describe("parseWezTermFocusedPaneId", () => {
   test("returns null when no focused_pane_id exists", () => {
     const output = JSON.stringify([{ workspace: "main" }, { focused_pane_id: "18" }])
     expect(parseWezTermFocusedPaneId(output)).toBe(null)
+  })
+})
+
+describe("isKDEJumpBackSupported", () => {
+  test("returns false on non-linux platforms", () => {
+    expect(isKDEJumpBackSupported()).toBe(false)
+  })
+
+  test("returns false when KDE_SESSION_VERSION is unset even on linux", () => {
+    const originalPlatform = Object.getOwnPropertyDescriptor(process, "platform")
+    Object.defineProperty(process, "platform", { value: "linux" })
+    const originalKde = process.env.KDE_SESSION_VERSION
+    delete process.env.KDE_SESSION_VERSION
+
+    try {
+      expect(isKDEJumpBackSupported()).toBe(false)
+    } finally {
+      if (originalPlatform) {
+        Object.defineProperty(process, "platform", originalPlatform)
+      }
+      if (originalKde) {
+        process.env.KDE_SESSION_VERSION = originalKde
+      }
+    }
+  })
+})
+
+describe("getCachedWindowTitle", () => {
+  test("returns null when not on linux with kde", () => {
+    expect(getCachedWindowTitle()).toBe(null)
+  })
+})
+
+describe("captureStartupWindowId", () => {
+  test("does not set env var when kde jump back is unsupported", () => {
+    const original = process.env.OPENCODE_NOTIFIER_WINDOW_ID
+    delete process.env.OPENCODE_NOTIFIER_WINDOW_ID
+
+    try {
+      captureStartupWindowId()
+      expect(process.env.OPENCODE_NOTIFIER_WINDOW_ID).toBeUndefined()
+    } finally {
+      if (original) {
+        process.env.OPENCODE_NOTIFIER_WINDOW_ID = original
+      } else {
+        delete process.env.OPENCODE_NOTIFIER_WINDOW_ID
+      }
+    }
+  })
+})
+
+describe("focusTerminal", () => {
+  test("does not throw on unsupported platforms", async () => {
+    await expect(focusTerminal()).resolves.toBeUndefined()
   })
 })

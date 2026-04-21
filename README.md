@@ -17,9 +17,10 @@ Restart OpenCode. Done.
 ## What it does
 
 You'll get notified when:
+
 - OpenCode needs permission to run something
 - Your session finishes
-- An error happens  
+- An error happens
 - The question tool pops up
 
 There's also `subagent_complete` for when subagents finish, and `user_cancelled` for when you press ESC to abort -- both are silent by default so you don't get spammed.
@@ -39,6 +40,7 @@ sudo pacman -S libnotify         # Arch
 For sounds, you need one of: `paplay`, `aplay`, `mpv`, or `ffplay`
 
 **Windows**: Works out of the box. But heads up:
+
 - Only `.wav` files work (not mp3)
 - Use full paths like `C:/Users/You/sounds/alert.wav` not `~/`
 
@@ -217,7 +219,7 @@ Messages support placeholder tokens that get replaced with actual values:
 - `{timestamp}` - Current time in `HH:MM:SS` format (e.g. "14:30:05")
 - `{turn}` - Global notification counter that persists across restarts (e.g. 1, 2, 3). Stored in `~/.config/opencode/opencode-notifier-state.json`
 
-When `showSessionTitle` is `false`, `{sessionTitle}` is replaced with an empty string. Any trailing separators (`: `, ` - `, ` | `) are automatically cleaned up when a placeholder resolves to empty.
+When `showSessionTitle` is `false`, `{sessionTitle}` is replaced with an empty string. Any trailing separators (`: `, `-`, `|`) are automatically cleaned up when a placeholder resolves to empty.
 
 To disable session titles in messages without changing `showSessionTitle`, just remove the `{sessionTitle}` placeholder from your custom messages.
 
@@ -245,6 +247,7 @@ Use your own sound files:
 ```
 
 Platform notes:
+
 - macOS/Linux: .wav or .mp3 files work
 - Windows: Only .wav files work
 - If file doesn't exist, falls back to bundled sound
@@ -367,17 +370,17 @@ To disable this and always get notified:
 
 ### Platform support
 
-| Platform | Method | Requirements | Status |
-|----------|--------|--------------|--------|
-| macOS | AppleScript (`System Events`) | None | Untested |
-| Linux X11 | `xdotool` | `xdotool` installed | Untested |
-| Linux Wayland (Hyprland) | `hyprctl activewindow` | None | Tested |
-| Linux Wayland (Niri) | `niri msg --json focused-window` | None | Tested |
-| Linux Wayland (Sway) | `swaymsg -t get_tree` | None | Untested |
-| Linux Wayland (KDE) | `kdotool` | `kdotool` installed | Untested |
-| Linux Wayland (GNOME) | Not supported | - | Falls back to always notifying |
-| Linux Wayland (river, dwl, Cosmic, etc.) | Not supported | - | Falls back to always notifying |
-| Windows | `GetForegroundWindow()` via PowerShell | None | Untested |
+| Platform                                 | Method                                   | Requirements          | Status                         |
+| ---------------------------------------- | ---------------------------------------- | --------------------- | ------------------------------ |
+| macOS                                    | AppleScript (`System Events`)          | None                  | Untested                       |
+| Linux X11                                | `xdotool`                              | `xdotool` installed | Untested                       |
+| Linux Wayland (Hyprland)                 | `hyprctl activewindow`                 | None                  | Tested                         |
+| Linux Wayland (Niri)                     | `niri msg --json focused-window`       | None                  | Tested                         |
+| Linux Wayland (Sway)                     | `swaymsg -t get_tree`                  | None                  | Untested                       |
+| Linux Wayland (KDE)                      | `kdotool`                              | `kdotool` installed | Tested                         |
+| Linux Wayland (GNOME)                    | Not supported                            | -                     | Falls back to always notifying |
+| Linux Wayland (river, dwl, Cosmic, etc.) | Not supported                            | -                     | Falls back to always notifying |
+| Windows                                  | `GetForegroundWindow()` via PowerShell | None                  | Untested                       |
 
 **Unsupported compositors**: Wayland has no standard protocol for querying the focused window. Each compositor has its own IPC, and GNOME intentionally doesn't expose focus information. Unsupported compositors fall back to always notifying.
 
@@ -407,6 +410,15 @@ With grouping enabled, each new notification replaces the previous one so you on
 
 Works with all major notification daemons (GNOME, dunst, mako, swaync, etc.) on both X11 and Wayland.
 
+## KDE Plasma: Jump back to terminal from notification
+
+On KDE Plasma/Wayland, clicking the popup body is not consistently delivered as a notification activation event.This plugin uses an explicit notification action button instead:
+
+- **Jump to terminal** (action button on the popup card, or in notification history)
+
+When clicked, the plugin runs its terminal-focus path. On KDE with `kdotool` installed, it auto-captures the startup terminal window ID and jumps back to that pinned window.
+The action button is only enabled on Linux KDE sessions where `kdotool` is available.
+
 ## Updating
 
 If Opencode does not update the plugin or there is an issue with the cache version:
@@ -431,6 +443,7 @@ Switch back to osascript. Some users report node-notifier works for sounds but n
 
 **Linux: No notifications?**
 Install libnotify-bin:
+
 ```bash
 sudo apt install libnotify-bin  # Debian/Ubuntu
 sudo dnf install libnotify       # Fedora
@@ -442,7 +455,39 @@ Test with: `notify-send "Test" "Hello"`
 **Linux: No sounds?**
 Install one of: `paplay`, `aplay`, `mpv`, or `ffplay`
 
+**KDE Plasma: jumps to wrong terminal window or doesn't jump?**
+
+Jump back feature tested on:
+
+- KWin with default floating windows
+- KWin + Krohnkite
+- Ghostty and Konsole
+- Warp
+- OpenCode in tmux inside VS Code terminal
+
+Most terminal emulators should work fine, but there can be exceptions.
+
+Known limitations:
+
+- Kitty is currently unsupported for this jump-back path (unstable focus targeting)
+- Yakuake sessions are not supported for activity-specific jump-back behavior
+
+You can still override manually (if needed) by pinning an explicit window ID:
+
+```bash
+export OPENCODE_NOTIFIER_WINDOW_ID="$(kdotool getactivewindow)"
+opencode
+```
+
+Manual pinning bypasses heuristic window matching and should activate that exact window on notification action click.
+
+**X11 deterministic jump-back**
+
+- `xdotool` support is possible for the same startup pin behavior
+- not implemented yet
+
 **Windows: Custom sounds not working?**
+
 - Must be .wav format (not .mp3)
 - Use full Windows paths: `C:/Users/YourName/sounds/alert.wav` (not `~/`)
 - Make sure the file actually plays in Windows Media Player
@@ -485,6 +530,7 @@ This is a known Bun issue on Windows. Disable native notifications and use Power
 ```
 
 **Plugin not loading?**
+
 - Check your opencode.json syntax
 - Clear the cache (see Updating section)
 - Restart OpenCode

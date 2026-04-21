@@ -19,7 +19,7 @@ import { sendNotification } from "./notify"
 import { playSound } from "./sound"
 import { ringBell } from "./bell"
 import { runCommand } from "./command"
-import { isTerminalFocused } from "./focus"
+import { isTerminalFocused, focusTerminal, captureStartupWindowId, isKDEJumpBackSupported } from "./focus"
 import { shouldSuppressPermissionAlert, prunePermissionAlertState } from "./permission-dedupe"
 
 const IDLE_COMPLETE_DELAY_MS = 350
@@ -185,7 +185,8 @@ async function handleEvent(
   if (isEventNotificationEnabled(config, eventType)) {
     const title = getNotificationTitle(config, projectName)
     const iconPath = getIconPath(config)
-    promises.push(sendNotification(title, message, config.timeout, iconPath, config.notificationSystem, config.linux.grouping))
+    const onNotificationClick = isKDEJumpBackSupported() ? () => void focusTerminal() : undefined
+    promises.push(sendNotification(title, message, config.timeout, iconPath, config.notificationSystem, config.linux.grouping, onNotificationClick))
   }
 
   if (isEventSoundEnabled(config, eventType)) {
@@ -455,6 +456,8 @@ async function handleEventWithElapsedTime(
 }
 
 export const NotifierPlugin: Plugin = async ({ client, directory }) => {
+  captureStartupWindowId()
+
   const clientEnv = process.env.OPENCODE_CLIENT
   if (clientEnv && clientEnv !== "cli") {
     const config = loadConfig()
