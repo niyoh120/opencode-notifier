@@ -1,4 +1,7 @@
 import { execFile, execFileSync, execSync } from "child_process"
+import { readFileSync, unlinkSync, writeFileSync } from "fs"
+import { tmpdir } from "os"
+import { join } from "path"
 
 const LINUX_TERMINAL_APPS = new Set<string>([
   "ghostty",
@@ -219,10 +222,19 @@ function getActiveWindowId(): string | null {
 }
 
 const cachedWindowId: string | null = getActiveWindowId()
-const cachedWindowTitle: string | null =
-  process.platform === "linux" && !!process.env.KDE_SESSION_VERSION && cachedWindowId
-    ? getWindowTitleFromKdotool(cachedWindowId)
-    : null
+
+let cachedWindowTitleValue: string | null | undefined
+
+export function getCachedWindowTitle(): string | null {
+  if (cachedWindowTitleValue !== undefined) {
+    return cachedWindowTitleValue
+  }
+  cachedWindowTitleValue =
+    process.platform === "linux" && !!process.env.KDE_SESSION_VERSION && cachedWindowId
+      ? getWindowTitleFromKdotool(cachedWindowId)
+      : null
+  return cachedWindowTitleValue
+}
 
 export function isTmuxPaneFocused(tmuxPane: string | null | undefined, probeResult: string | null): boolean {
   if (!tmuxPane) return false
@@ -429,33 +441,32 @@ function focusLinuxWindowKDE(windowId: string): void {
 function findTerminalPid(): number {
   try {
     let currentPid = process.pid
-    const fs = require("fs")
-    
+
     // Walk up the process tree
     while (currentPid > 1) {
       try {
         // Read the parent PID from /proc
-        const statContent = fs.readFileSync(`/proc/${currentPid}/stat`, "utf-8")
+        const statContent = readFileSync(`/proc/${currentPid}/stat`, "utf-8")
         // Extract parent PID from stat file (field 4)
         const match = statContent.match(/^\d+\s+\([^)]+\)\s+\S\s+(\d+)/)
         if (!match) break
-        
+
         const ppid = parseInt(match[1], 10)
-        
+
         // Read the command name
-        const cmdline = fs.readFileSync(`/proc/${ppid}/comm`, "utf-8").trim()
-        
+        const cmdline = readFileSync(`/proc/${ppid}/comm`, "utf-8").trim()
+
         // Check if this looks like a terminal
         if (cmdline.match(/ghostty|konsole|gnome-terminal|xterm|alacritty|kitty|wezterm|terminator|tilix|foot/i)) {
           return ppid
         }
-        
+
         currentPid = ppid
       } catch {
         break
       }
     }
-    
+
     // Fallback to PPID if no terminal found
     return process.ppid
   } catch {
@@ -488,7 +499,7 @@ function focusKDEWithKWinScript(): void {
     const termProgram = (process.env.TERM_PROGRAM || "terminal").toLowerCase()
     const cwd = process.cwd().toLowerCase()
     const cwdBase = cwd.split("/").filter(Boolean).pop() || ""
-    const cachedTitle = (cachedWindowTitle || "").toLowerCase()
+    const cachedTitle = (getCachedWindowTitle() || "").toLowerCase()
 
     // Create a temporary KWin script
     const scriptContent = `
@@ -595,40 +606,36 @@ function findAndActivateTerminal() {
 findAndActivateTerminal();
 `;
     
-    const fs = require("fs");
-    const os = require("os");
-    const path = require("path");
-    
-    const scriptPath = path.join(os.tmpdir(), `opencode-focus-${currentPid}.kwinscript`);
-    const pluginName = `opencode-focus-${currentPid}`;
-    fs.writeFileSync(scriptPath, scriptContent);
+    const scriptPath = join(tmpdir(), `opencode-focus-${currentPid}.kwinscript`)
+    const pluginName = `opencode-focus-${currentPid}`
+    writeFileSync(scriptPath, scriptContent)
 
     // Load the script
     execSync(
       `qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript "${scriptPath}" "${pluginName}"`,
       { encoding: "utf-8", timeout: 2000 }
-    ).trim();
-    
+    )
+
     // Start the script
     execSync(
       `qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.start`,
       { timeout: 2000 }
-    );
-    
+    )
+
     // Clean up
     try {
-      fs.unlinkSync(scriptPath);
+      unlinkSync(scriptPath)
     } catch {}
-    
+
     // Unload the script after a short delay
     setTimeout(() => {
       try {
         execSync(
           `qdbus org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript "${pluginName}"`,
           { timeout: 500 }
-        );
+        )
       } catch {}
-    }, 1000);
+    }, 1000)
     
   } catch {
     // Fall back to xdotool
