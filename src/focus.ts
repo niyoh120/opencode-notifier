@@ -240,7 +240,7 @@ export function isTmuxPaneFocused(tmuxPane: string | null | undefined, probeResu
   if (!tmuxPane) return false
   if (!probeResult) return false
   const [sessionAttached, windowActive, paneActive] = probeResult.split(" ")
-  return sessionAttached === "1" && windowActive === "1" && paneActive === "1"
+  return Number(sessionAttached) > 0 && windowActive === "1" && paneActive === "1"
 }
 
 export function isLinuxTerminalFocused(params: {

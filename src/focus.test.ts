@@ -73,6 +73,11 @@ describe("isTmuxPaneFocused", () => {
     expect(isTmuxPaneFocused("%1", "1 0 1")).toBe(false)
     expect(isTmuxPaneFocused("%1", "0 1 1")).toBe(false)
   })
+
+  test("returns true when session has multiple attached clients", () => {
+    expect(isTmuxPaneFocused("%1", "2 1 1")).toBe(true)
+    expect(isTmuxPaneFocused("%1", "5 1 1")).toBe(true)
+  })
 })
 
 describe("isLinuxTerminalFocused", () => {
