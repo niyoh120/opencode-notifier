@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.4] - 2026-04-28
+
+### Fixed
+- **Tmux Multi-client Focus:** Fixed an issue where `suppressWhenFocused` failed to suppress notifications in `tmux` if multiple clients were attached to the same session. (#71)
+- **Minimum Duration Lookup:** Fixed a bug where top-level `minDuration` failed to suppress notifications because elapsed time was only calculated when custom command durations were set. (#68)
+
+### Documentation
+- Updated cache paths and troubleshooting steps in the README.
+- Added missing configuration option docs and fixed broken markdown links.
+
 ## [0.2.3] - 2026-04-21
 
 ### Added
